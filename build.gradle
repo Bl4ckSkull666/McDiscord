@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+group 'de.bl4ckskull666'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+                'Implementation-Version': version,
+                'Main-Class': 'com.mkyong.DateUtils'
+    }
+
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation files('Z:/Projekte/Minecraft/Jars/BungeeCord/BungeeCord_b1274.jar')
+    compile 'net.dv8tion:JDA:3.5.0_329'
+}

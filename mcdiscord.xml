@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="mcdiscord" default="all">
+  
+  
+  <property file="mcdiscord.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*.yarb/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.war"/>
+    <include name="*.swc"/>
+    <include name="*.zip"/>
+    <include name="*.egg"/>
+    <include name="*.ear"/>
+    <include name="*.ane"/>
+    <include name="*.jar"/>
+    <include name="*.klib"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+    <exclude name="**/?*.aj"/>
+  </patternset>
+  
+  <!-- JDK definitions -->
+  
+  <property name="jdk.bin.11" value="${jdk.home.11}/bin"/>
+  <path id="jdk.classpath.11">
+    <fileset dir="${jdk.home.11}">
+      <include name="../jdk-11.0.1!/java.base"/>
+      <include name="../jdk-11.0.1!/java.compiler"/>
+      <include name="../jdk-11.0.1!/java.datatransfer"/>
+      <include name="../jdk-11.0.1!/java.desktop"/>
+      <include name="../jdk-11.0.1!/java.instrument"/>
+      <include name="../jdk-11.0.1!/java.logging"/>
+      <include name="../jdk-11.0.1!/java.management"/>
+      <include name="../jdk-11.0.1!/java.management.rmi"/>
+      <include name="../jdk-11.0.1!/java.naming"/>
+      <include name="../jdk-11.0.1!/java.net.http"/>
+      <include name="../jdk-11.0.1!/java.prefs"/>
+      <include name="../jdk-11.0.1!/java.rmi"/>
+      <include name="../jdk-11.0.1!/java.scripting"/>
+      <include name="../jdk-11.0.1!/java.se"/>
+      <include name="../jdk-11.0.1!/java.security.jgss"/>
+      <include name="../jdk-11.0.1!/java.security.sasl"/>
+      <include name="../jdk-11.0.1!/java.smartcardio"/>
+      <include name="../jdk-11.0.1!/java.sql"/>
+      <include name="../jdk-11.0.1!/java.sql.rowset"/>
+      <include name="../jdk-11.0.1!/java.transaction.xa"/>
+      <include name="../jdk-11.0.1!/java.xml"/>
+      <include name="../jdk-11.0.1!/java.xml.crypto"/>
+      <include name="../jdk-11.0.1!/jdk.accessibility"/>
+      <include name="../jdk-11.0.1!/jdk.aot"/>
+      <include name="../jdk-11.0.1!/jdk.attach"/>
+      <include name="../jdk-11.0.1!/jdk.charsets"/>
+      <include name="../jdk-11.0.1!/jdk.compiler"/>
+      <include name="../jdk-11.0.1!/jdk.crypto.cryptoki"/>
+      <include name="../jdk-11.0.1!/jdk.crypto.ec"/>
+      <include name="../jdk-11.0.1!/jdk.crypto.mscapi"/>
+      <include name="../jdk-11.0.1!/jdk.dynalink"/>
+      <include name="../jdk-11.0.1!/jdk.editpad"/>
+      <include name="../jdk-11.0.1!/jdk.hotspot.agent"/>
+      <include name="../jdk-11.0.1!/jdk.httpserver"/>
+      <include name="../jdk-11.0.1!/jdk.internal.ed"/>
+      <include name="../jdk-11.0.1!/jdk.internal.jvmstat"/>
+      <include name="../jdk-11.0.1!/jdk.internal.le"/>
+      <include name="../jdk-11.0.1!/jdk.internal.opt"/>
+      <include name="../jdk-11.0.1!/jdk.internal.vm.ci"/>
+      <include name="../jdk-11.0.1!/jdk.internal.vm.compiler"/>
+      <include name="../jdk-11.0.1!/jdk.internal.vm.compiler.management"/>
+      <include name="../jdk-11.0.1!/jdk.jartool"/>
+      <include name="../jdk-11.0.1!/jdk.javadoc"/>
+      <include name="../jdk-11.0.1!/jdk.jcmd"/>
+      <include name="../jdk-11.0.1!/jdk.jconsole"/>
+      <include name="../jdk-11.0.1!/jdk.jdeps"/>
+      <include name="../jdk-11.0.1!/jdk.jdi"/>
+      <include name="../jdk-11.0.1!/jdk.jdwp.agent"/>
+      <include name="../jdk-11.0.1!/jdk.jfr"/>
+      <include name="../jdk-11.0.1!/jdk.jlink"/>
+      <include name="../jdk-11.0.1!/jdk.jshell"/>
+      <include name="../jdk-11.0.1!/jdk.jsobject"/>
+      <include name="../jdk-11.0.1!/jdk.jstatd"/>
+      <include name="../jdk-11.0.1!/jdk.localedata"/>
+      <include name="../jdk-11.0.1!/jdk.management"/>
+      <include name="../jdk-11.0.1!/jdk.management.agent"/>
+      <include name="../jdk-11.0.1!/jdk.management.jfr"/>
+      <include name="../jdk-11.0.1!/jdk.naming.dns"/>
+      <include name="../jdk-11.0.1!/jdk.naming.rmi"/>
+      <include name="../jdk-11.0.1!/jdk.net"/>
+      <include name="../jdk-11.0.1!/jdk.pack"/>
+      <include name="../jdk-11.0.1!/jdk.rmic"/>
+      <include name="../jdk-11.0.1!/jdk.scripting.nashorn"/>
+      <include name="../jdk-11.0.1!/jdk.scripting.nashorn.shell"/>
+      <include name="../jdk-11.0.1!/jdk.sctp"/>
+      <include name="../jdk-11.0.1!/jdk.security.auth"/>
+      <include name="../jdk-11.0.1!/jdk.security.jgss"/>
+      <include name="../jdk-11.0.1!/jdk.unsupported"/>
+      <include name="../jdk-11.0.1!/jdk.unsupported.desktop"/>
+      <include name="../jdk-11.0.1!/jdk.xml.dom"/>
+      <include name="../jdk-11.0.1!/jdk.zipfs"/>
+    </fileset>
+  </path>
+  
+  <property name="project.jdk.home" value="${jdk.home.11}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.11}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.11"/>
+  
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.gradle:_com.google.code.findbugs:jsr305:3.0.2.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.2/25ea2e8b0c338a877313bd4672d3fe056ea78f0d/jsr305-3.0.2.jar"/>
+  </path>
+  
+  <path id="library.gradle:_com.neovisionaries:nv-websocket-client:2.2.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/com.neovisionaries/nv-websocket-client/2.2/225e2a6eb3efa44b3bede68b19f5a26ae9cc17c1/nv-websocket-client-2.2.jar"/>
+  </path>
+  
+  <path id="library.gradle:_com.squareup.okhttp3:okhttp:3.8.1.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/3.8.1/4d060ca3190df0eda4dc13415532a12e15ca5f11/okhttp-3.8.1.jar"/>
+  </path>
+  
+  <path id="library.gradle:_com.squareup.okio:okio:1.13.0.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/com.squareup.okio/okio/1.13.0/a9283170b7305c8d92d25aff02a6ab7e45d06cbe/okio-1.13.0.jar"/>
+  </path>
+  
+  <path id="library.gradle:_net.dv8tion:jda:3.5.0_329.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/net.dv8tion/JDA/3.5.0_329/d69788c6e54538bede03786bcac95d1e33371957/JDA-3.5.0_329.jar"/>
+  </path>
+  
+  <path id="library.gradle:_net.java.dev.jna:jna:4.4.0.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/net.java.dev.jna/jna/4.4.0/cb208278274bf12ebdb56c61bd7407e6f774d65a/jna-4.4.0.jar"/>
+  </path>
+  
+  <path id="library.gradle:_net.sf.trove4j:trove4j:3.0.3.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/net.sf.trove4j/trove4j/3.0.3/42ccaf4761f0dfdfa805c9e340d99a755907e2dd/trove4j-3.0.3.jar"/>
+  </path>
+  
+  <path id="library.gradle:_org.apache.commons:commons-collections4:4.1.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-collections4/4.1/a4cf4688fe1c7e3a63aa636cc96d013af537768e/commons-collections4-4.1.jar"/>
+  </path>
+  
+  <path id="library.gradle:_org.json:json:20160810.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/org.json/json/20160810/aca5eb39e2a12fddd6c472b240afe9ebea3a6733/json-20160810.jar"/>
+  </path>
+  
+  <path id="library.gradle:_org.slf4j:slf4j-api:1.7.25.classpath">
+    <pathelement location="C:/Users/PapaH/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.25/da76ca59f6a57ee3102f8f9bd9cee742973efa8a/slf4j-api-1.7.25.jar"/>
+  </path>
+  <!-- Register Custom Compiler Taskdefs -->
+  <property name="javac2.home" value="${idea.home}/lib"/>
+  <path id="javac2.classpath">
+    <fileset dir="${javac2.home}">
+      <include name="javac2.jar"/>
+      <include name="jdom.jar"/>
+      <include name="asm-all*.jar"/>
+      <include name="forms-*.jar"/>
+    </fileset>
+  </path>
+  <target name="register.custom.compilers">
+    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
+    <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
+  </target>
+  
+  <!-- Modules -->
+  
+  <import file="${basedir}/.idea/modules/module_mcdiscord.xml"/>
+  
+  <import file="${basedir}/.idea/modules/module_mcdiscord.main.xml"/>
+  
+  <import file="${basedir}/.idea/modules/module_mcdiscord.test.xml"/>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.mcdiscord, clean.module.mcdiscord.main, clean.module.mcdiscord.test" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.mcdiscord, compile.module.mcdiscord.main, compile.module.mcdiscord.test" description="build all modules"/>
+  
+  <target name="all" depends="build.modules" description="build all"/>
+</project>
