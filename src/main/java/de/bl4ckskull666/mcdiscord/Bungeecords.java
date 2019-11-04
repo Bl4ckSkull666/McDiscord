@@ -7,7 +7,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.Title;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.*;
 import net.md_5.bungee.api.plugin.Listener;
@@ -49,8 +48,8 @@ public class Bungeecords implements Listener {
         if(!McDiscord.getConfig().getBoolean("inform.disconnect", false))
             return;
 
-        _connected.remove(e.getPlayer().getUniqueId());
-        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.disconnect", ""), McDiscord.getConfig().getString("messages.discord.disconnect", "Player &p has left the Minecraft Server. Last Server %s"), e.getPlayer().getName(), "", ServerUtils.getServerName(e.getPlayer().getServer().getInfo().getName()));
+        if(_connected.remove(e.getPlayer().getUniqueId()))
+            McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.disconnect", ""), McDiscord.getConfig().getString("messages.discord.disconnect", "Player &p has left the Minecraft Server. Last Server %s"), e.getPlayer().getName(), "", ServerUtils.getServerName(e.getPlayer().getServer().getInfo().getName()));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -59,11 +58,19 @@ public class Bungeecords implements Listener {
         if(!McDiscord.getConfig().getBoolean("inform.kick", false))
             return;
 
-        _connected.remove(e.getPlayer().getUniqueId());
-        if(e.getCancelServer() == null) {
+        if(e.getCancelServer() == null)
             e.getPlayer().disconnect(e.getKickReasonComponent());
+
+        if(_connected.remove(e.getPlayer().getUniqueId()))
+            McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.kick", ""), McDiscord.getConfig().getString("messages.discord.kick", "Player %p was kicked from the server %s. Reason %m"), e.getPlayer().getName(), getTextFromComponents(e.getKickReasonComponent()), ServerUtils.getServerName(e.getPlayer().getServer().getInfo().getName()));
+    }
+
+    private String getTextFromComponents(BaseComponent[] bca) {
+        String str = "";
+        for(BaseComponent bc: bca) {
+            str += ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', bc.toPlainText()));
         }
-        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.kick", ""), McDiscord.getConfig().getString("messages.discord.kick", "Player %p was kicked from the server %s. Reason %m"), e.getPlayer().getName(), e.getKickReasonComponent().toString(), ServerUtils.getServerName(e.getPlayer().getServer().getInfo().getName()));
+        return str;
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
