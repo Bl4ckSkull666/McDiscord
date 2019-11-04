@@ -1,4 +1,7 @@
 name: McDiscord
 main: de.bl4ckskull666.mcdiscord.McDiscord
 version: 0.0.1
+api-version: 1.14
 author: Bl4ckSkull666
+description: This plugin Is intended as small bridge between BungeeCord server for Minecraft and Discord.
+softdepend: [ServerPing, BungeeTabListPlus]

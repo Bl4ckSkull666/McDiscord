@@ -1,10 +1,13 @@
 package de.bl4ckskull666.mcdiscord;
 
+import de.bl4ckskull666.mcdiscord.utils.ServerUtils;
 import net.dv8tion.jda.core.entities.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.Title;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.*;
 import net.md_5.bungee.api.plugin.Listener;
@@ -15,11 +18,15 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class Bungeecords implements Listener {
+    private static HashMap<UUID, String> _lastServer = new HashMap<>();
     private static HashMap<UUID, String> _users = new HashMap<>();
     private static List<UUID> _connected = new ArrayList<>();
+    private static List<Long> pingsTime = new ArrayList<>();
+    private static long pingTotal = 0;
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(ChatEvent e) {
+        getLastPings();
         if(!McDiscord.getConfig().getBoolean("inform.chat", false))
             return;
 
@@ -33,41 +40,60 @@ public class Bungeecords implements Listener {
         if(e.isCommand() || e.getMessage().startsWith("/"))
             return;
 
-        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("messages.discord.chat", "[MC %s] %p: %m"), ps.getName(), e.getMessage(), ps.getServer().getInfo().getName());
+        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("messages.discord.chat", "[MC %s] %p: %m"), ps.getName(), e.getMessage(), ServerUtils.getServerName(ps.getServer().getInfo().getName()));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDisconnect(PlayerDisconnectEvent e) {
+        getLastPings();
         if(!McDiscord.getConfig().getBoolean("inform.disconnect", false))
             return;
 
         _connected.remove(e.getPlayer().getUniqueId());
-        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.disconnect", ""), McDiscord.getConfig().getString("messages.discord.disconnect", "Player &p has left the Minecraft Server. Last Server %s"), e.getPlayer().getName(), "", e.getPlayer().getServer().getInfo().getName());
+        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.disconnect", ""), McDiscord.getConfig().getString("messages.discord.disconnect", "Player &p has left the Minecraft Server. Last Server %s"), e.getPlayer().getName(), "", ServerUtils.getServerName(e.getPlayer().getServer().getInfo().getName()));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onServerKick(ServerKickEvent e) {
+        getLastPings();
         if(!McDiscord.getConfig().getBoolean("inform.kick", false))
             return;
 
         _connected.remove(e.getPlayer().getUniqueId());
-        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.kick", ""), McDiscord.getConfig().getString("messages.discord.kick", "Player %p was kicked from the server %s. Reason %m"), e.getPlayer().getName(), e.getKickReasonComponent().toString(), e.getPlayer().getServer().getInfo().getName());
+        if(e.getCancelServer() == null) {
+            e.getPlayer().disconnect(e.getKickReasonComponent());
+        }
+        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.kick", ""), McDiscord.getConfig().getString("messages.discord.kick", "Player %p was kicked from the server %s. Reason %m"), e.getPlayer().getName(), e.getKickReasonComponent().toString(), ServerUtils.getServerName(e.getPlayer().getServer().getInfo().getName()));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onServerConnect(ServerConnectEvent e) {
+        getLastPings();
         if(McDiscord.getBans().containsKey(e.getPlayer().getUniqueId())) {
             e.setCancelled(true);
             e.getPlayer().disconnect(McDiscord.getBans().get(e.getPlayer().getUniqueId()));
             return;
         }
 
-        String server = e.getTarget() == null?"":e.getTarget().getName();
+        String toServer = "";
+        String fromServer = "";
+        if(e.getPlayer().getServer() != null && e.getPlayer().getServer().getInfo() != null)
+            fromServer = e.getPlayer().getServer().getInfo().getName();
+
+        if(e.getTarget() != null)
+            toServer = e.getTarget().getName();
+
         if(_connected.contains(e.getPlayer().getUniqueId())) {
             if(!McDiscord.getConfig().getBoolean("inform.switch", false))
                 return;
 
-            McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.switch", ""), McDiscord.getConfig().getString("messages.discord.switch", "Player %p changed the server to %s"), e.getPlayer().getName(),  "", server);
+            if(_lastServer.containsKey(e.getPlayer().getUniqueId()) && _lastServer.get(e.getPlayer().getUniqueId()).equalsIgnoreCase(toServer)) {
+                return;
+            }
+
+            _lastServer.remove(e.getPlayer().getUniqueId());
+            _lastServer.put(e.getPlayer().getUniqueId(), toServer);
+            McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.switch", ""), McDiscord.getConfig().getString("messages.discord.switch", "A Player %p  joined the server. Current server %s"), e.getPlayer().getName(), ServerUtils.getServerName(fromServer), ServerUtils.getServerName(toServer));
             return;
         }
 
@@ -75,23 +101,18 @@ public class Bungeecords implements Listener {
         if(!McDiscord.getConfig().getBoolean("inform.connect", false))
             return;
 
-        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.connect", ""), McDiscord.getConfig().getString("messages.discord.connect", "A Player %p  joined the server. Current server %s"), e.getPlayer().getName(), "", server);
+        _lastServer.put(e.getPlayer().getUniqueId(), toServer);
+        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.connect", ""), McDiscord.getConfig().getString("messages.discord.connect", "A Player %p  joined the server. Current server %s"), e.getPlayer().getName(), ServerUtils.getServerName(fromServer), ServerUtils.getServerName(toServer));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onServerSwitch(ServerSwitchEvent e) {
-        if(!McDiscord.getConfig().getBoolean("inform.switch", false))
-            return;
-
-        McDiscord.getDiscord().sendMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.switch", ""), McDiscord.getConfig().getString("messages.discord.switch", "Player %p changed the server to %s"), e.getPlayer().getName(),  "", e.getPlayer().getServer().getInfo().getName());
+    public void onProxyPing(ProxyPingEvent e) {
+        pingTotal++;
+        pingsTime.add(System.currentTimeMillis());
+        getLastPings();
     }
 
     public static void BanPlayer(User u, String[] a) {
-        if(!McDiscord.isAdmin(u.getId())) {
-            McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.no-permission", "You @%p has no permission to use a discord command."), u.getName(), "", "");
-            return;
-        }
-
         if(a.length < 3) {
             McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.need-args", "@%p you have forget arguments for this command."), u.getName(), "", "");
             return;
@@ -119,11 +140,6 @@ public class Bungeecords implements Listener {
     }
 
     public static void UnBanPlayer(User u, String[] a) {
-        if(!McDiscord.isAdmin(u.getId())) {
-            McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.no-permission", "You @%p has no permission to use a discord command."), u.getName(), "", "");
-            return;
-        }
-
         if(a.length < 2) {
             McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.need-args", "@%p you have forget arguments for this command."), u.getName(), "", "");
             return;
@@ -147,11 +163,6 @@ public class Bungeecords implements Listener {
     }
 
     public static void KickPlayer(User u, String[] a) {
-        if(!McDiscord.isAdmin(u.getId())) {
-            McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.no-permission", "You @%p has no permission to use a discord command."), u.getName(), "", "");
-            return;
-        }
-
         if(a.length < 3) {
             McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.need-args", "@%p you have forget arguments for this command."), u.getName(), "", "");
             return;
@@ -174,15 +185,17 @@ public class Bungeecords implements Listener {
         TextComponent[] tcs = new TextComponent[2];
         tcs[0] = new TextComponent(ChatColor.translateAlternateColorCodes('&', McDiscord.getConfig().getString("admin.kick-header", "&l&o&c!!! KICKED !!!") + "\n"));
         tcs[1] = new TextComponent(ChatColor.translateAlternateColorCodes('&', strBuild));
-        pp.disconnect(tcs);
+        //pp.disconnect(tcs);
+        try {
+            ServerKickEvent ske = new ServerKickEvent(pp, pp.getServer().getInfo(), tcs, null, ServerKickEvent.State.UNKNOWN);
+            ProxyServer.getInstance().getPluginManager().callEvent(ske);
+        } catch(Exception ex) {
+            McDiscord.getInstance().getLogger().info("Disconnect instead of kick player " + pp.getName());
+            pp.disconnect(tcs);
+        }
     }
 
     public static void BroadcastMessage(User u, String[] a) {
-        if(!McDiscord.isAdmin(u.getId())) {
-            McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.no-permission", "You @%p has no permission to use a discord command."), u.getName(), "", "");
-            return;
-        }
-
         if(a.length < 2) {
             McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.need-args", "@%p you have forget arguments for this command."), u.getName(), "", "");
             return;
@@ -200,11 +213,6 @@ public class Bungeecords implements Listener {
     }
 
     public static void AnnounceMessage(User u, String[] a) {
-        if(!McDiscord.isAdmin(u.getId())) {
-            McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.no-permission", "You @%p has no permission to use a discord command."), u.getName(), "", "");
-            return;
-        }
-
         if(a.length < 2) {
             McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.need-args", "@%p you have forget arguments for this command."), u.getName(), "", "");
             return;
@@ -231,11 +239,6 @@ public class Bungeecords implements Listener {
     }
 
     public static void ShutdownProxy(User u, String[] a) {
-        if(!McDiscord.isAdmin(u.getId())) {
-            McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.no-permission", "You @%p has no permission to use a discord command."), u.getName(), "", "");
-            return;
-        }
-
         if(a.length < 2) {
             McDiscord.getDiscord().sendTimeMessageToDiscord(McDiscord.getConfig().getString("discord.channelId.chat", ""), McDiscord.getConfig().getString("admin.need-args", "@%p you have forget arguments for this command."), u.getName(), "", "");
             return;
@@ -250,5 +253,23 @@ public class Bungeecords implements Listener {
         }
 
         ProxyServer.getInstance().getScheduler().schedule(McDiscord.getInstance(), new EveryTask.DoShutDown(seconds), 0, 1, TimeUnit.SECONDS);
+    }
+
+    public static long getLastPings() {
+        List<Long> tmp = new ArrayList<>();
+        tmp.addAll(pingsTime);
+        pingsTime.clear();
+        long t = System.currentTimeMillis();
+        for(long l: tmp) {
+            if((t - l) > 900000)
+                continue;
+
+            pingsTime.add(l);
+        }
+        return pingsTime.size();
+    }
+
+    public static long getTotalPing() {
+        return pingTotal;
     }
 }

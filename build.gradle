@@ -20,11 +20,12 @@ task fatJar(type: Jar) {
 }
 
 repositories {
-    mavenCentral()
     jcenter()
 }
 
 dependencies {
     implementation files('Z:/Projekte/Minecraft/Jars/BungeeCord/BungeeCord_b1274.jar')
+    implementation files('Z:/Projekte/NetBeansProjects/BungeeCord Plugins Own/ServerPing/dist/ServerPing.jar')
+    implementation files('Z:/Projekte/Minecraft/Jars/BungeeCord/BungeeTabListPlus_v2.8.1.jar')
     compile 'net.dv8tion:JDA:3.5.0_329'
 }
